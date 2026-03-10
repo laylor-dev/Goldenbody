@@ -95,8 +95,8 @@ export default function HeroSequence() {
 
   // Apply a butter-smooth spring physics damper to the raw scroll value
   const smoothScroll = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
+    stiffness: 300, // Snappier response for mobile touch scrolling
+    damping: 30,    // Tighter damping to prevent rubber-banding
     restDelta: 0.001
   });
 
@@ -251,8 +251,8 @@ export default function HeroSequence() {
     // Render loop for buttery smooth interpolation
     const renderLoop = () => {
       // Linear interpolation (lerp) towards the target frame for buttery smooth "spring" effect
-      // 0.08 interpolates 8% toward the target each frame, absorbing jitter from the mouse wheel
-      currentFrameRef.current += (targetFrame - currentFrameRef.current) * 0.08;
+      // Increased to 0.15 for tighter 1:1 tracking on mobile touch devices
+      currentFrameRef.current += (targetFrame - currentFrameRef.current) * 0.15;
 
       // Calculate the closest integer frame to draw safely
       const safeFrameIndex = Math.min(
