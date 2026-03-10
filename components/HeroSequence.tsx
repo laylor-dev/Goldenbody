@@ -130,8 +130,10 @@ export default function HeroSequence() {
     const img = imagesRef.current[frameIndex];
     if (!canvas || !ctx || !img || !img.complete || !img.naturalWidth) return;
 
-    // We must divide the canvas width by the device pixel ratio because we scaled the canvas context
-    const dpr = window.devicePixelRatio || 1;
+    // We MUST divide the canvas width by our OPTIMIZED dpr, not the raw dpr
+    const isMobile = window.innerWidth <= 768;
+    const maxDpr = isMobile ? 1.5 : 2;
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const cw = canvas.width / dpr;
     const ch = canvas.height / dpr;
     const iw = img.naturalWidth;
@@ -149,15 +151,9 @@ export default function HeroSequence() {
     const sx = (cw - sw) / 2;
     const sy = (ch - sh) / 2;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, cw, ch);
-
-    // Create a smooth background gradient that matches the sequence's studio lighting background
-    // (White center, soft grey edges) so that if it DOES letterbox on ultra-wides, it blends seamlessly instead of showing black bars.
-    const gradient = ctx.createRadialGradient(cw / 2, ch / 2, 0, cw / 2, ch / 2, Math.max(cw, ch) / 1.5);
-    gradient.addColorStop(0, '#FFFFFF');
-    gradient.addColorStop(1, '#E5E5E5');
-    ctx.fillStyle = gradient;
+    // Clear and fill with a solid matched background to save massive mobile GPU overhead
+    // We removed the radial gradient because recalculating it 60 times a second kills phone batteries and FPS
+    ctx.fillStyle = '#E5E5E5';
     ctx.fillRect(0, 0, cw, ch);
 
     ctx.drawImage(img, 0, 0, iw, ih, sx, sy, sw, sh);
@@ -168,12 +164,17 @@ export default function HeroSequence() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    // Cap DPR at 1.5 for mobile and 2 for desktop. 
+    // iPhones have a 3x DPR which forces the canvas to draw 9x the pixels, instantly killing 60fps frame-by-frame sequences.
+    const isMobile = window.innerWidth <= 768;
+    const maxDpr = isMobile ? 1.5 : 2;
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+    
     // We want the canvas to be the size of its container, not strictly the window anymore since it's framed.
     const w = canvas.parentElement?.clientWidth || window.innerWidth;
     const h = canvas.parentElement?.clientHeight || window.innerHeight;
 
-    // Set internal resolution multiplied by DPR for crisp rendering
+    // Set internal resolution multiplied by optimized DPR
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     // Set CSS physical size
