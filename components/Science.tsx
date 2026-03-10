@@ -216,7 +216,7 @@ export default function Science() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="relative lg:h-[600px] w-full rounded-[2rem] overflow-hidden shadow-2xl group border border-neutral-100 bg-black aspect-square sm:aspect-video lg:aspect-auto"
+            className="relative lg:h-[600px] w-full rounded-[2rem] overflow-hidden shadow-2xl group border border-neutral-100 bg-black aspect-[4/3] md:aspect-video lg:aspect-auto"
           >
             {/* The Video as background */}
             <VideoPlayer src="/videos/science0.mp4" />
@@ -227,7 +227,7 @@ export default function Science() {
               initial={{ opacity: 0, y: 30, rotate: -2 }}
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 w-1/2 max-w-[240px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-[6px] border-white/10 backdrop-blur-sm group-hover:-translate-y-2 transition-transform duration-500 ease-out"
+              className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 w-1/3 sm:w-1/2 max-w-[180px] sm:max-w-[240px] rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-4 sm:border-[6px] border-white/10 backdrop-blur-sm group-hover:-translate-y-2 transition-transform duration-500 ease-out"
             >
               <Image
                 src="/images/science0.jpg"
