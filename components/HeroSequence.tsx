@@ -457,14 +457,31 @@ export default function HeroSequence() {
 
         {/* Loading state overlays */}
         {isLoading && (
-          <div className="sequence-loader z-50">
-            <div className="sequence-loader-bar">
+          <div className="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+            <div className="relative w-24 h-24 mb-6">
+                <div className="w-full h-full animate-[spin_2s_ease-in-out_infinite]">
+                    <Image 
+                        src="/images/logo.png" 
+                        alt="Loading Goldenbody Experience..." 
+                        fill 
+                        className="object-contain drop-shadow-xl"
+                        sizes="96px"
+                        priority 
+                    />
+                </div>
+            </div>
+            {/* Elegant loading fade text */}
+            <div className="font-display uppercase tracking-[0.3em] text-gold-600/80 text-sm animate-pulse mb-4">
+                Loading
+            </div>
+            {/* Progress bar and text */}
+            <div className="w-48 h-[2px] bg-neutral-100 overflow-hidden mb-3">
               <div
-                className="sequence-loader-fill"
+                className="h-full bg-gold-500 transition-all duration-300 ease-out"
                 style={{ width: `${loadProgress}%` }}
               />
             </div>
-            <p className="sequence-loader-text">{loadProgress}%</p>
+            <p className="font-mono text-[10px] tracking-[0.2em] text-neutral-400">{loadProgress}%</p>
           </div>
         )}
 
