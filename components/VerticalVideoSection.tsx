@@ -62,7 +62,7 @@ function VideoCard({ video, index, onOpen }: { video: typeof videos[0], index: n
             onClick={() => onOpen(video)}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="group relative w-[260px] sm:w-[320px] aspect-[9/16] rounded-2xl sm:rounded-3xl overflow-hidden bg-black flex-shrink-0 cursor-pointer shadow-xl border border-neutral-200 transition-all duration-500 hover:shadow-gold-500/10 hover:border-gold-500/30"
+            className="group relative w-[200px] sm:w-[320px] aspect-[9/16] rounded-xl sm:rounded-3xl overflow-hidden bg-black flex-shrink-0 cursor-pointer shadow-xl border border-neutral-200 transition-all duration-500 hover:shadow-gold-500/10 hover:border-gold-500/30"
             style={{ contain: 'layout style' }}
         >
             {/* Video — preload=none stops simultaneous loading, only play on hover */}
