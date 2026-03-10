@@ -97,7 +97,7 @@ export default function SciencePage() {
         {/* ── Creative Right-Side Overlay ── */}
         <motion.div
           style={{ y: useTransform(heroProgress, [0, 1], ['0%', '25%']) }}
-          className="absolute right-[-5%] md:right-[5%] lg:right-[10%] top-[15%] md:top-[20%] w-[300px] md:w-[400px] lg:w-[500px] aspect-[3/4] z-10 pointer-events-none"
+          className="absolute right-0 top-[15%] md:right-[5%] lg:right-[10%] md:top-[20%] w-[180px] sm:w-[220px] md:w-[400px] lg:w-[500px] aspect-[3/4] z-10 pointer-events-none"
         >
           {/* Ambient Glow */}
           <div className="absolute inset-0 bg-gold-500/10 blur-[80px] rounded-full" />
