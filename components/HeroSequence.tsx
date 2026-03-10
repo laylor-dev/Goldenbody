@@ -458,30 +458,48 @@ export default function HeroSequence() {
         {/* Loading state overlays */}
         {isLoading && (
           <div className="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
-            <div className="relative w-24 h-24 mb-6">
-                <div className="w-full h-full animate-[spin_2s_ease-in-out_infinite]">
+            {/* Premium Fill Loader Container */}
+            <div className="relative w-32 h-32 md:w-40 md:h-40 mb-8">
+                
+                {/* 1. Base Layer (Faded / Gray Logo) */}
+                <div className="absolute inset-0 opacity-20 grayscale">
                     <Image 
                         src="/images/logo.png" 
-                        alt="Loading Goldenbody Experience..." 
+                        alt="Goldenbody" 
                         fill 
-                        className="object-contain drop-shadow-xl"
-                        sizes="96px"
+                        className="object-contain"
+                        sizes="(max-width: 768px) 128px, 160px"
                         priority 
                     />
                 </div>
+
+                {/* 2. Top Layer (Full-Color Gold Fill Logo) revealed by loadProgress */}
+                <div 
+                    className="absolute bottom-0 left-0 right-0 overflow-hidden transition-all duration-300 ease-out"
+                    style={{ height: `${loadProgress}%` }}
+                >
+                    <div className="absolute bottom-0 left-0 right-0 w-32 h-32 md:w-40 md:h-40">
+                        <Image 
+                            src="/images/logo.png" 
+                            alt="Goldenbody Loading" 
+                            fill 
+                            className="object-contain drop-shadow-2xl"
+                            sizes="(max-width: 768px) 128px, 160px"
+                            priority 
+                        />
+                    </div>
+                </div>
             </div>
-            {/* Elegant loading fade text */}
-            <div className="font-display uppercase tracking-[0.3em] text-gold-600/80 text-sm animate-pulse mb-4">
-                Loading
+
+            {/* Elegant loading percentage fade text */}
+            <div className="flex flex-col items-center">
+                <div className="font-display uppercase tracking-[0.4em] text-gold-600 text-sm animate-pulse mb-2">
+                    Loading
+                </div>
+                <div className="font-mono text-xs tracking-[0.2em] text-neutral-400">
+                    {loadProgress}%
+                </div>
             </div>
-            {/* Progress bar and text */}
-            <div className="w-48 h-[2px] bg-neutral-100 overflow-hidden mb-3">
-              <div
-                className="h-full bg-gold-500 transition-all duration-300 ease-out"
-                style={{ width: `${loadProgress}%` }}
-              />
-            </div>
-            <p className="font-mono text-[10px] tracking-[0.2em] text-neutral-400">{loadProgress}%</p>
           </div>
         )}
 
