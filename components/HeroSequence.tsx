@@ -457,7 +457,7 @@ export default function HeroSequence() {
 
         {/* Loading state overlays */}
         {isLoading && (
-          <div className="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+          <div className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center transition-opacity duration-1000">
             {/* Premium Fill Loader Container */}
             <div className="relative w-32 h-32 md:w-40 md:h-40 mb-8">
                 

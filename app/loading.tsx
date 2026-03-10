@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function Loading() {
     return (
-        <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center">
+        <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
             <div className="relative w-24 h-24 mb-4">
                 {/* The logo spinning cleanly. 
                     animate-[spin_3s_linear_infinite] is a generic tailwind approach,
