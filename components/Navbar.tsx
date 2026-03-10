@@ -93,6 +93,18 @@ export default function Navbar() {
     return () => window.removeEventListener('cart-updated', updateCart);
   }, []);
 
+  // Prevent background scrolling when overlays are open
+  useEffect(() => {
+    if (searchOpen || cartOpen || mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [searchOpen, cartOpen, mobileMenuOpen]);
+
   const removeFromCart = (addedAt: number) => {
     try {
       const cart = JSON.parse(localStorage.getItem('gb_cart') || '[]');
@@ -245,9 +257,9 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/95 backdrop-blur-lg z-[1000] flex flex-col w-screen h-screen overflow-y-auto"
+              className="fixed inset-0 bg-black/95 backdrop-blur-lg z-[1000] flex flex-col w-screen h-screen overflow-y-auto overscroll-contain"
             >
-              <div className="max-w-3xl mx-auto w-full px-6 pt-24">
+              <div className="max-w-3xl mx-auto w-full px-6 pt-24 pb-12">
                 <div className="flex items-center justify-between mb-12">
                   <h2 className="text-2xl font-display uppercase tracking-wider text-white">{t.nav.search}</h2>
                   <button onClick={() => { setSearchOpen(false); setSearchQuery(''); }} className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -271,7 +283,7 @@ export default function Navbar() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-2 max-h-[50vh] overflow-y-auto"
+                    className="space-y-2 max-h-[50vh] overflow-y-auto overscroll-contain pb-8"
                   >
                     {searchResults.length === 0 ? (
                       <p className="text-neutral-500 text-lg py-8 text-center font-mono">No products found for &quot;{searchQuery}&quot;</p>
