@@ -21,8 +21,31 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: 'Golden Body | Premium Supplements',
-  description: 'Cinematic, immersive sports nutrition brand.',
+  title: 'Goldenbody Nutrition | Elite Sports Performance',
+  description: 'Premium sports nutrition, proteins, and supplements engineered for elite athletes and fitness excellence. Build your Goldenbody today.',
+  keywords: ['nutrition', 'supplements', 'goldenbody', 'protein', 'fitness', 'algeria', 'sports performance', 'bodybuilding'],
+  openGraph: {
+    title: 'Goldenbody Nutrition | Elite Sports Performance',
+    description: 'Premium sports nutrition and supplements engineered for elite athletes.',
+    url: 'https://goldenbody.dz',
+    siteName: 'Goldenbody Nutrition',
+    images: [
+      {
+        url: '/icon.png',
+        width: 800,
+        height: 600,
+        alt: 'Goldenbody Nutrition Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Goldenbody Nutrition',
+    description: 'Premium sports nutrition and supplements.',
+    images: ['/icon.png'],
+  },
 };
 
 export const viewport = {
