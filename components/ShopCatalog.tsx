@@ -470,7 +470,7 @@ export default function ShopCatalog() {
                         initial={{ opacity: 0, x: -300 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -300 }}
-                        className="fixed inset-0 z-[100] bg-white lg:hidden overflow-y-auto"
+                        className="fixed inset-0 z-[600] bg-white lg:hidden overflow-y-auto"
                     >
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-8 border-b border-neutral-100 pb-4">

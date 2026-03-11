@@ -43,13 +43,13 @@ export default function Storytelling() {
           </motion.div>
 
           <div className="flex flex-col justify-center relative z-10 text-black lg:pl-12 pt-8 sm:pt-16 lg:pt-0">
-            <div className="overflow-hidden mb-4 sm:mb-6">
+            <div className="overflow-hidden pb-4 -mb-2 sm:mb-4">
               <motion.h2
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display uppercase leading-[0.9]"
+                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display uppercase leading-[1.1]"
               >
                 {t.storytelling.title} <br />
                 <span className="text-gold-500">{t.storytelling.titleHighlight}</span>

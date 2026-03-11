@@ -92,18 +92,18 @@ export default function Hero() {
 
       {/* Foreground Content — overflow-hidden is here so no child bleeds out */}
       <motion.div style={{ y: textY }} className="relative z-30 text-center px-6 max-w-5xl mx-auto mt-20 overflow-hidden w-full">
-        <div className="overflow-hidden mb-2">
+        <div className="overflow-hidden pb-4 -mb-2">
           <motion.h1
             custom={1} initial="hidden" animate="visible" variants={textVariants}
-            className="text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[0.9] tracking-tight"
+            className="text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[1.1] tracking-tight"
           >
             {t.hero.power} <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 to-gold-600">{t.hero.routine}</span>
           </motion.h1>
         </div>
-        <div className="overflow-hidden mb-6">
+        <div className="overflow-hidden pb-4 -mb-2">
           <motion.h1
             custom={2} initial="hidden" animate="visible" variants={textVariants}
-            className="text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[0.9] tracking-tight"
+            className="text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[1.1] tracking-tight"
           >
             {t.hero.fuel} <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 to-gold-600">{t.hero.progress}</span>
           </motion.h1>

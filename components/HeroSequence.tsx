@@ -80,7 +80,8 @@ function getFramePath(index: number): string {
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);       // mobile canvas
+  const canvasDesktopRef = useRef<HTMLCanvasElement>(null); // desktop canvas
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const currentFrameRef = useRef(0);
   const rafRef = useRef<number>(0);
@@ -110,6 +111,11 @@ export default function HeroSequence() {
   // The 3D sequence fades IN as the Hero text fades OUT (10% to 20%)
   const sequenceOpacity = useTransform(smoothScroll, [0.1, 0.2], [0, 1]);
 
+  // Mobile scroll progress: 0→1 across the whole sequence phase (20%→100%)
+  const mobileScrollProgress = useTransform(smoothScroll, [0.2, 1.0], [0, 1]);
+  // Scroll hint fades out quickly once you start scrolling into the sequence
+  const scrollHintOpacity = useTransform(smoothScroll, [0.2, 0.35], [1, 0]);
+
   const textVariants = {
     hidden: { opacity: 0, y: 80, filter: 'blur(8px)' },
     visible: (i: number) => ({
@@ -123,71 +129,57 @@ export default function HeroSequence() {
     })
   };
 
-  // Draw a frame onto the canvas with smart scaling (no over-zoom, no tight letterboxing)
+  // Draw a frame onto both canvases with smart scaling
   const drawFrame = useCallback((frameIndex: number) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = imagesRef.current[frameIndex];
-    if (!canvas || !ctx || !img || !img.complete || !img.naturalWidth) return;
+    const drawToCanvas = (canvas: HTMLCanvasElement | null) => {
+      const ctx = canvas?.getContext('2d');
+      const img = imagesRef.current[frameIndex];
+      if (!canvas || !ctx || !img || !img.complete || !img.naturalWidth) return;
+      const isMobile = window.innerWidth <= 768;
+      const maxDpr = isMobile ? 1.5 : 2;
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      const cw = canvas.width / dpr;
+      const ch = canvas.height / dpr;
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      const cropSrcH = ih * 0.95; // Ignore bottom 5% of original frame entirely to cut off watermark
 
-    // We MUST divide the canvas width by our OPTIMIZED dpr, not the raw dpr
-    const isMobile = window.innerWidth <= 768;
-    const maxDpr = isMobile ? 1.5 : 2;
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    const cw = canvas.width / dpr;
-    const ch = canvas.height / dpr;
-    const iw = img.naturalWidth;
-    const ih = img.naturalHeight;
+      const scale = Math.min(cw / iw, ch / cropSrcH);
+      const finalScale = scale * 0.90; // Shrink 10% from perfect fit to give the cap physical breathing space
 
-    // Use optical dimensions rather than scaled CSS dimensions to keep it sharp
-    // Calculate scale to fit HEIGHT mainly so it doesn't get massively zoomed in on wide desktop screens
-    // On mobile (tall screens), it will fit width instead and height will letterbox
-    const scale = Math.min(cw / iw, ch / ih);
+      const sw = iw * finalScale;
+      const sh = cropSrcH * finalScale;
+      const sx = (cw - sw) / 2;
+      const sy = (ch - sh) / 2;
 
-    // Slight overscale (1.05) to ensure we hide any tiny edge artifacts
-    const finalScale = scale * 1.05;
-    const sw = iw * finalScale;
-    const sh = ih * finalScale;
-    const sx = (cw - sw) / 2;
-    const sy = (ch - sh) / 2;
-
-    // Clear and fill with a solid matched background to save massive mobile GPU overhead
-    // We removed the radial gradient because recalculating it 60 times a second kills phone batteries and FPS
-    ctx.fillStyle = '#E5E5E5';
-    ctx.fillRect(0, 0, cw, ch);
-
-    ctx.drawImage(img, 0, 0, iw, ih, sx, sy, sw, sh);
+      ctx.fillStyle = '#E5E5E5';
+      ctx.fillRect(0, 0, cw, ch);
+      
+      // Draw image with the specific cropped source dimensions
+      ctx.drawImage(img, 0, 0, iw, cropSrcH, sx, sy, sw, sh);
+    };
+    drawToCanvas(canvasRef.current);
+    drawToCanvas(canvasDesktopRef.current);
   }, []);
 
-  // Resize canvas to fill viewport accounting for Retina/High-DPI displays
+  // Resize both canvases to fill their respective containers
   const handleResize = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Cap DPR at 1.5 for mobile and 2 for desktop. 
-    // iPhones have a 3x DPR which forces the canvas to draw 9x the pixels, instantly killing 60fps frame-by-frame sequences.
-    const isMobile = window.innerWidth <= 768;
-    const maxDpr = isMobile ? 1.5 : 2;
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    
-    // We want the canvas to be the size of its container, not strictly the window anymore since it's framed.
-    const w = canvas.parentElement?.clientWidth || window.innerWidth;
-    const h = canvas.parentElement?.clientHeight || window.innerHeight;
-
-    // Set internal resolution multiplied by optimized DPR
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    // Set CSS physical size
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
-
-    // Scale the context so drawing commands use CSS pixels
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.scale(dpr, dpr);
-    }
-
-    // Redraw current frame after resize
+    const resizeCanvas = (canvas: HTMLCanvasElement | null) => {
+      if (!canvas) return;
+      const isMobile = window.innerWidth <= 768;
+      const maxDpr = isMobile ? 1.5 : 2;
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      const w = canvas.parentElement?.clientWidth || window.innerWidth;
+      const h = canvas.parentElement?.clientHeight || window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.scale(dpr, dpr);
+    };
+    resizeCanvas(canvasRef.current);
+    resizeCanvas(canvasDesktopRef.current);
     drawFrame(currentFrameRef.current);
   }, [drawFrame]);
 
@@ -324,24 +316,24 @@ export default function HeroSequence() {
             className="absolute inset-0 z-40 flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto pointer-events-none"
           >
             <div className="pointer-events-auto flex flex-col items-center">
-              <div className="overflow-hidden mb-2">
+              <div className="overflow-hidden pb-4 -mb-2">
                 <motion.h1
                   custom={1}
                   initial="hidden"
                   animate="visible"
                   variants={textVariants}
-                  className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[0.9] tracking-tight"
+                  className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[1.1] tracking-tight"
                 >
                   {t.hero.power} <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 to-gold-600">{t.hero.routine}</span>
                 </motion.h1>
               </div>
-              <div className="overflow-hidden mb-6">
+              <div className="overflow-hidden pb-4 -mb-2">
                 <motion.h1
                   custom={2}
                   initial="hidden"
                   animate="visible"
                   variants={textVariants}
-                  className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[0.9] tracking-tight"
+                  className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white uppercase leading-[1.1] tracking-tight"
                 >
                   {t.hero.fuel} {t.hero.progress}
                 </motion.h1>
@@ -386,9 +378,9 @@ export default function HeroSequence() {
         {/* The Emerging 3D Sequence Layer */}
         <motion.div
           style={{ opacity: isLoading ? 0 : sequenceOpacity }}
-          className="absolute inset-0 z-30 flex items-center justify-center p-8 md:px-16 md:pt-32 md:pb-16"
+          className="absolute inset-0 z-30 flex items-center justify-center p-3 pt-24 pb-3 md:p-8 md:px-16 md:pt-32 md:pb-16"
         >
-          {/* Creative side text - Left */}
+          {/* Creative side text - Left (desktop only) */}
           <motion.div
             style={{ opacity: sequenceOpacity, x: useTransform(smoothScroll, [0.2, 0.4], [locale === 'ar' ? 50 : -50, 0]) }}
             className="hidden lg:flex flex-col justify-center w-64 h-[60vh] lg:h-[70vh] rtl:pl-8 ltr:pr-8 rtl:border-l ltr:border-r border-white/10"
@@ -405,27 +397,126 @@ export default function HeroSequence() {
             </div>
           </motion.div>
 
-          {/* Central framed sequence */}
-          <div className="relative w-full lg:w-[60vw] h-[60vh] lg:h-[80vh] rounded-3xl overflow-hidden bg-white/95 shadow-[0_0_100px_rgba(212,175,55,0.1)] ring-1 ring-white/20 mx-auto">
+          {/* ═══════════════════════════════════════════ */}
+          {/* MOBILE ENHANCED LAYOUT — wrapper with product + info */}
+          {/* ═══════════════════════════════════════════ */}
+          <div className="lg:hidden relative w-full flex flex-col justify-center gap-4 h-full pl-5 pr-1">
 
-            {/* Ambient Background Glow for the "Studio" feel inside the frame */}
+            {/* ── Scroll-progress bar (vertical, left edge) ── */}
+            <div className="absolute left-0 top-6 bottom-6 w-[2px] bg-white/10 rounded-full z-50">
+              <motion.div
+                className="w-full bg-gradient-to-b from-gold-400 to-gold-600 rounded-full origin-top"
+                style={{ scaleY: mobileScrollProgress, height: '100%' }}
+              />
+            </div>
+
+            {/* ── Central Product Frame ── */}
+            <div className="relative w-full h-[60vh] max-h-[500px] min-h-[300px] rounded-2xl overflow-hidden bg-white/95 shadow-[0_0_60px_rgba(212,175,55,0.15)] ring-1 ring-white/20">
+
+              {/* Pulsing gold border glow */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl pointer-events-none z-20"
+                animate={{ boxShadow: ['inset 0 0 0px rgba(212,175,55,0)', 'inset 0 0 20px rgba(212,175,55,0.12)', 'inset 0 0 0px rgba(212,175,55,0)'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              />
+
+              {/* Floating Phase badge — top left */}
+              <motion.div
+                style={{ opacity: sequenceOpacity }}
+                className="absolute top-3 left-3 z-30 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full border border-gold-500/30"
+              >
+                <span className="w-1.5 h-1.5 bg-gold-500 rounded-full animate-pulse" />
+                <span className="text-gold-400 font-mono text-[9px] uppercase tracking-widest">{t.heroSequence.phase}</span>
+              </motion.div>
+
+              {/* Ambient Background Glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(212,175,55,0.05)_0%,transparent_50%)] pointer-events-none" />
+
+              {/* Canvas */}
+              <canvas
+                ref={canvasRef}
+                className="sequence-canvas w-full h-full object-cover scale-100 mix-blend-multiply drop-shadow-2xl"
+              />
+
+              {/* Inner vignette */}
+              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.08)]" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+
+              {/* Inner Gold glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06)_0%,transparent_70%)] z-10" />
+
+              {/* "Scroll to explore" hint — fades out as user scrolls */}
+              <motion.div
+                style={{ opacity: scrollHintOpacity }}
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 pointer-events-none"
+              >
+                <span className="text-white/50 text-[9px] font-mono uppercase tracking-[0.2em]">Scroll</span>
+                <motion.div
+                  className="w-[1px] h-4 bg-gradient-to-b from-white/50 to-transparent"
+                  animate={{ scaleY: [0.5, 1, 0.5], opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </motion.div>
+            </div>
+
+            {/* ── Bottom Info Card ── */}
+            <div className="w-full bg-black/75 backdrop-blur-xl rounded-2xl border border-white/10 p-4 shrink-0">
+              {/* Title row */}
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-white font-display text-base uppercase tracking-wider leading-tight">{t.heroSequence.standard}</h3>
+                  <p className="text-gray-400 text-[11px] leading-relaxed mt-0.5">{t.heroSequence.standardDesc}</p>
+                </div>
+                <Link
+                  href="/shop"
+                  className="shrink-0 ml-3 bg-gold-500 text-black text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full hover:bg-gold-400 transition-colors active:scale-95"
+                >
+                  Shop →
+                </Link>
+              </div>
+
+              {/* Spec stats row */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {[
+                  { label: t.heroSequence.bioAvailable, value: '100%' },
+                  { label: t.heroSequence.clinicalDose, value: '✓' },
+                  { label: t.heroSequence.purity, value: 'A+' },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-white/5 rounded-xl p-2 text-center border border-white/5">
+                    <p className="text-gold-400 font-mono font-bold text-sm">{stat.value}</p>
+                    <p className="text-white/40 text-[9px] uppercase tracking-wider mt-0.5 leading-tight">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Synergy tags */}
+              <div className="flex gap-1.5 flex-wrap">
+                {[t.heroSequence.recovery, t.heroSequence.endurance, t.heroSequence.hypertrophy].map((tag) => (
+                  <span key={tag} className="text-[9px] font-mono uppercase tracking-widest border border-white/15 text-white/50 px-2 py-0.5 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════ */}
+          {/* DESKTOP LAYOUT — central frame + side panels */}
+          {/* ═══════════════════════════════════════════ */}
+
+          {/* Central framed sequence (desktop only) */}
+          <div className="hidden lg:block relative lg:w-[60vw] rounded-3xl overflow-hidden bg-white/95 shadow-[0_0_100px_rgba(212,175,55,0.1)] ring-1 ring-white/20 mx-auto" style={{ height: '80vh' }}>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(212,175,55,0.05)_0%,transparent_50%)] pointer-events-none" />
-
-            {/* Canvas */}
             <canvas
-              ref={canvasRef}
-              className="sequence-canvas w-full h-full object-cover scale-[1.25] md:scale-[1.15] mix-blend-multiply drop-shadow-2xl translate-y-4"
+              ref={canvasDesktopRef}
+              className="sequence-canvas w-full h-full object-cover md:scale-[1.15] mix-blend-multiply drop-shadow-2xl translate-y-4"
             />
-
-            {/* Inner shadows to frame the product and fade the hard edges */}
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.1)]" />
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-80" />
-
-            {/* Inner Gold ambient glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08)_0%,transparent_70%)] z-10" />
           </div>
 
-          {/* Creative side text - Right */}
+          {/* Creative side text - Right (desktop only) */}
           <motion.div
             style={{ opacity: sequenceOpacity, x: useTransform(smoothScroll, [0.2, 0.4], [locale === 'ar' ? -50 : 50, 0]) }}
             className="hidden lg:flex flex-col justify-between items-end w-64 h-[60vh] lg:h-[70vh] rtl:pr-8 ltr:pl-8 rtl:border-r ltr:border-l border-white/10 rtl:text-left ltr:text-right"
