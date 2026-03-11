@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     siteName: 'Goldenbody Nutrition',
     images: [
       {
-        url: '/icon.png',
-        width: 800,
-        height: 600,
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
         alt: 'Goldenbody Nutrition Logo',
       },
     ],
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Goldenbody Nutrition',
     description: 'Premium sports nutrition and supplements.',
-    images: ['/icon.png'],
+    images: ['/og-image.png'],
   },
 };
 
